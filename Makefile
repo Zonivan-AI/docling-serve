@@ -29,44 +29,44 @@ md-lint-file:
 	$(CMD_PREFIX) touch .markdown-lint
 
 .PHONY: docling-serve-image
-docling-serve-image: Containerfile ## Build docling-serve container image
-	$(ECHO_PREFIX) printf "  %-12s Containerfile\n" "[docling-serve]"
-	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load -f Containerfile -t ghcr.io/docling-project/docling-serve:$(TAG) .
+docling-serve-image: Dockerfile ## Build docling-serve container image
+	$(ECHO_PREFIX) printf "  %-12s Dockerfile\n" "[docling-serve]"
+	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load -f Dockerfile -t ghcr.io/docling-project/docling-serve:$(TAG) .
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve:$(TAG) ghcr.io/docling-project/docling-serve:$(BRANCH_TAG)
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve:$(TAG) quay.io/docling-project/docling-serve:$(BRANCH_TAG)
 
 .PHONY: docling-serve-cpu-image
-docling-serve-cpu-image: Containerfile ## Build docling-serve "cpu only" container image
-	$(ECHO_PREFIX) printf "  %-12s Containerfile\n" "[docling-serve CPU]"
-	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group cpu --no-extra flash-attn" -f Containerfile -t ghcr.io/docling-project/docling-serve-cpu:$(TAG) .
+docling-serve-cpu-image: Dockerfile ## Build docling-serve "cpu only" container image
+	$(ECHO_PREFIX) printf "  %-12s Dockerfile\n" "[docling-serve CPU]"
+	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group cpu --no-extra flash-attn" -f Dockerfile -t ghcr.io/docling-project/docling-serve-cpu:$(TAG) .
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-cpu:$(TAG) ghcr.io/docling-project/docling-serve-cpu:$(BRANCH_TAG)
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-cpu:$(TAG) quay.io/docling-project/docling-serve-cpu:$(BRANCH_TAG)
 
 .PHONY: docling-serve-cu124-image
-docling-serve-cu124-image: Containerfile ## Build docling-serve container image with CUDA 12.4 support
-	$(ECHO_PREFIX) printf "  %-12s Containerfile\n" "[docling-serve with Cuda 12.4]"
-	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group cu124" -f Containerfile --platform linux/amd64 -t ghcr.io/docling-project/docling-serve-cu124:$(TAG) .
+docling-serve-cu124-image: Dockerfile ## Build docling-serve container image with CUDA 12.4 support
+	$(ECHO_PREFIX) printf "  %-12s Dockerfile\n" "[docling-serve with Cuda 12.4]"
+	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group cu124" -f Dockerfile --platform linux/amd64 -t ghcr.io/docling-project/docling-serve-cu124:$(TAG) .
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-cu124:$(TAG) ghcr.io/docling-project/docling-serve-cu124:$(BRANCH_TAG)
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-cu124:$(TAG) quay.io/docling-project/docling-serve-cu124:$(BRANCH_TAG)
 
 .PHONY: docling-serve-cu126-image
-docling-serve-cu126-image: Containerfile ## Build docling-serve container image with CUDA 12.6 support
-	$(ECHO_PREFIX) printf "  %-12s Containerfile\n" "[docling-serve with Cuda 12.6]"
-	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group cu126" -f Containerfile --platform linux/amd64 -t ghcr.io/docling-project/docling-serve-cu126:$(TAG) .
+docling-serve-cu126-image: Dockerfile ## Build docling-serve container image with CUDA 12.6 support
+	$(ECHO_PREFIX) printf "  %-12s Dockerfile\n" "[docling-serve with Cuda 12.6]"
+	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group cu126" -f Dockerfile --platform linux/amd64 -t ghcr.io/docling-project/docling-serve-cu126:$(TAG) .
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-cu126:$(TAG) ghcr.io/docling-project/docling-serve-cu126:$(BRANCH_TAG)
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-cu126:$(TAG) quay.io/docling-project/docling-serve-cu126:$(BRANCH_TAG)
 
 .PHONY: docling-serve-cu128-image
-docling-serve-cu128-image: Containerfile ## Build docling-serve container image with CUDA 12.8 support
-	$(ECHO_PREFIX) printf "  %-12s Containerfile\n" "[docling-serve with Cuda 12.8]"
-	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group cu128" -f Containerfile --platform linux/amd64 -t ghcr.io/docling-project/docling-serve-cu128:$(TAG) .
+docling-serve-cu128-image: Dockerfile ## Build docling-serve container image with CUDA 12.8 support
+	$(ECHO_PREFIX) printf "  %-12s Dockerfile\n" "[docling-serve with Cuda 12.8]"
+	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group cu128" -f Dockerfile --platform linux/amd64 -t ghcr.io/docling-project/docling-serve-cu128:$(TAG) .
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-cu128:$(TAG) ghcr.io/docling-project/docling-serve-cu128:$(BRANCH_TAG)
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-cu128:$(TAG) quay.io/docling-project/docling-serve-cu128:$(BRANCH_TAG)
 
 .PHONY: docling-serve-rocm-image
-docling-serve-rocm-image: Containerfile ## Build docling-serve container image with ROCm support
-	$(ECHO_PREFIX) printf "  %-12s Containerfile\n" "[docling-serve with ROCm 6.3]"
-	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group rocm --no-extra flash-attn" -f Containerfile --platform linux/amd64 -t ghcr.io/docling-project/docling-serve-rocm:$(TAG) .
+docling-serve-rocm-image: Dockerfile ## Build docling-serve container image with ROCm support
+	$(ECHO_PREFIX) printf "  %-12s Dockerfile\n" "[docling-serve with ROCm 6.3]"
+	$(CMD_PREFIX) $(CONTAINER_RUNTIME) build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group rocm --no-extra flash-attn" -f Dockerfile --platform linux/amd64 -t ghcr.io/docling-project/docling-serve-rocm:$(TAG) .
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-rocm:$(TAG) ghcr.io/docling-project/docling-serve-rocm:$(BRANCH_TAG)
 	$(CMD_PREFIX) $(CONTAINER_RUNTIME) tag ghcr.io/docling-project/docling-serve-rocm:$(TAG) quay.io/docling-project/docling-serve-rocm:$(BRANCH_TAG)
 

@@ -1,0 +1,83 @@
+# Cloud Build configuration for building and deploying docling-serve to Cloud Run
+# This builds the CPU variant optimized for Cloud Run from source
+
+steps:
+  # Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    id: "build-image"
+    args:
+      - "build"
+      - "--platform=linux/amd64"
+      - "--build-arg=UV_SYNC_EXTRA_ARGS=--no-group pypi --group cpu --no-extra flash-attn"
+      - "--build-arg=MODELS_LIST=layout tableformer picture_classifier rapidocr easyocr"
+      - "-f"
+      - "Dockerfile"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:${SHORT_SHA}"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:latest"
+      - "."
+    waitFor: ["-"]
+
+  # Push the image to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    id: "push-image"
+    args:
+      - "push"
+      - "--all-tags"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu"
+    waitFor: ["build-image"]
+
+  # Deploy to Cloud Run
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "deploy-cloud-run"
+    entrypoint: "gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "${_SERVICE_NAME}"
+      - "--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:${SHORT_SHA}"
+      - "--platform=managed"
+      - "--region=${_REGION}"
+      - "--memory=${_MEMORY}"
+      - "--cpu=${_CPU}"
+      - "--min-instances=${_MIN_INSTANCES}"
+      - "--max-instances=${_MAX_INSTANCES}"
+      - "--concurrency=${_CONCURRENCY}"
+      - "--timeout=${_TIMEOUT}"
+      - "--port=8080"
+      - "--service-account=${_SERVICE_ACCOUNT}"
+      - "--no-allow-unauthenticated"
+      - "--set-env-vars=UVICORN_PORT=8080,DOCLING_SERVE_ENABLE_UI=false,DOCLING_SERVE_SCRATCH_PATH=/tmp/scratch,DOCLING_SERVE_ARTIFACTS_PATH=/opt/app-root/src/.cache/docling/models"
+      - "--set-secrets=DOCLING_SERVE_API_KEY=${_API_KEY_SECRET}:latest"
+      - "--project=${PROJECT_ID}"
+    waitFor: ["push-image"]
+
+# Substitution variables (can be overridden)
+substitutions:
+  _REGION: "us-central1"
+  _ARTIFACT_REPO: "docling-repo"
+  _SERVICE_NAME: "docling-serve"
+  _MEMORY: "4Gi"
+  _CPU: "2"
+  _MIN_INSTANCES: "0"
+  _MAX_INSTANCES: "10"
+  _CONCURRENCY: "5"
+  _TIMEOUT: "3600"
+  _SERVICE_ACCOUNT: "docling-serve@${PROJECT_ID}.iam.gserviceaccount.com"
+  _API_KEY_SECRET: "docling-api-key"
+
+# Images to be pushed to the registry
+images:
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:${SHORT_SHA}"
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:latest"
+
+# Service account for Cloud Build
+serviceAccount: "projects/${PROJECT_ID}/serviceAccounts/zonivan-backend@${PROJECT_ID}.iam.gserviceaccount.com"
+
+# Options
+options:
+  machineType: "E2_HIGHCPU_8"
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: "3600s"
