@@ -2,6 +2,20 @@
 # This builds the CPU variant optimized for Cloud Run from source
 
 steps:
+  # Set image tag (use SHORT_SHA if available, otherwise use BUILD_ID)
+  - name: "bash"
+    id: "set-image-tag"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        if [ -z "${SHORT_SHA}" ]; then
+          echo "manual-${BUILD_ID}" > /workspace/image-tag.txt
+        else
+          echo "${SHORT_SHA}" > /workspace/image-tag.txt
+        fi
+    waitFor: ["-"]
+
   # Build the container image
   - name: "gcr.io/cloud-builders/docker"
     id: "build-image"
@@ -13,11 +27,11 @@ steps:
       - "-f"
       - "Dockerfile"
       - "-t"
-      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:${SHORT_SHA}"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:$$(cat /workspace/image-tag.txt)"
       - "-t"
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:latest"
       - "."
-    waitFor: ["-"]
+    waitFor: ["set-image-tag"]
 
   # Push the image to Artifact Registry
   - name: "gcr.io/cloud-builders/docker"
@@ -31,26 +45,27 @@ steps:
   # Deploy to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: "deploy-cloud-run"
-    entrypoint: "gcloud"
+    entrypoint: "bash"
     args:
-      - "run"
-      - "deploy"
-      - "${_SERVICE_NAME}"
-      - "--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:${SHORT_SHA}"
-      - "--platform=managed"
-      - "--region=${_REGION}"
-      - "--memory=${_MEMORY}"
-      - "--cpu=${_CPU}"
-      - "--min-instances=${_MIN_INSTANCES}"
-      - "--max-instances=${_MAX_INSTANCES}"
-      - "--concurrency=${_CONCURRENCY}"
-      - "--timeout=${_TIMEOUT}"
-      - "--port=8080"
-      - "--service-account=${_SERVICE_ACCOUNT}"
-      - "--no-allow-unauthenticated"
-      - "--set-env-vars=UVICORN_PORT=8080,DOCLING_SERVE_ENABLE_UI=false,DOCLING_SERVE_SCRATCH_PATH=/tmp/scratch,DOCLING_SERVE_ARTIFACTS_PATH=/opt/app-root/src/.cache/docling/models"
-      - "--set-secrets=DOCLING_SERVE_API_KEY=${_API_KEY_SECRET}:latest"
-      - "--project=${PROJECT_ID}"
+      - "-c"
+      - |
+        IMAGE_TAG=$$(cat /workspace/image-tag.txt)
+        gcloud run deploy ${_SERVICE_NAME} \
+          --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:$${IMAGE_TAG} \
+          --platform=managed \
+          --region=${_REGION} \
+          --memory=${_MEMORY} \
+          --cpu=${_CPU} \
+          --min-instances=${_MIN_INSTANCES} \
+          --max-instances=${_MAX_INSTANCES} \
+          --concurrency=${_CONCURRENCY} \
+          --timeout=${_TIMEOUT} \
+          --port=8080 \
+          --service-account=${_SERVICE_ACCOUNT} \
+          --no-allow-unauthenticated \
+          --set-env-vars=UVICORN_PORT=8080,DOCLING_SERVE_ENABLE_UI=false,DOCLING_SERVE_SCRATCH_PATH=/tmp/scratch,DOCLING_SERVE_ARTIFACTS_PATH=/opt/app-root/src/.cache/docling/models \
+          --set-secrets=DOCLING_SERVE_API_KEY=${_API_KEY_SECRET}:latest \
+          --project=${PROJECT_ID}
     waitFor: ["push-image"]
 
 # Substitution variables (can be overridden)
@@ -69,7 +84,6 @@ substitutions:
 
 # Images to be pushed to the registry
 images:
-  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:${SHORT_SHA}"
   - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPO}/docling-serve-cpu:latest"
 
 # Service account for Cloud Build
